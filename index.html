@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🛡️ Runbook: Elastic Stack Home Lab — Guia Definitivo</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-alt: #161b22;
+    --bg-code: #1c2128;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-dim: #8b949e;
+    --accent: #58a6ff;
+    --accent-2: #7ee787;
+    --warn: #f0b72f;
+    --error: #f85149;
+    --success: #3fb950;
+    --purple: #bc8cff;
+    --code-keyword: #ff7b72;
+    --code-string: #a5d6ff;
+    --code-comment: #8b949e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", "Helvetica Neue", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    font-size: 16px;
+  }
+  /* Header */
+  header {
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 1rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: "";
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(88,166,255,0.1) 0%, transparent 70%);
+    animation: pulse 8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+  }
+  header h1 {
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 800;
+    color: #fff;
+    position: relative;
+    margin-bottom: 0.5rem;
+  }
+  header p {
+    color: var(--text-dim);
+    font-size: 1.05rem;
+    position: relative;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  /* Layout */
+  .container {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    max-width: 1400px;
+    margin: 0 auto;
+    gap: 2rem;
+    padding: 2rem 1rem;
+  }
+  @media (max-width: 900px) {
+    .container { grid-template-columns: 1fr; }
+    aside { display: none; }
+    aside.mobile-open { display: block; position: fixed; top: 60px; left: 0; right: 0; bottom: 0; background: var(--bg-alt); z-index: 100; overflow-y: auto; padding: 1rem; }
+  }
+  /* Sidebar */
+  aside {
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    padding: 1rem;
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  aside h3 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  aside ul { list-style: none; }
+  aside li { margin-bottom: 0.25rem; }
+  aside a {
+    display: block;
+    padding: 0.4rem 0.75rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.9rem;
+    border-left: 2px solid transparent;
+    border-radius: 0 4px 4px 0;
+    transition: all 0.2s;
+  }
+  aside a:hover {
+    color: var(--accent);
+    background: rgba(88,166,255,0.08);
+    border-left-color: var(--accent);
+  }
+  aside a.active {
+    color: var(--accent);
+    background: rgba(88,166,255,0.12);
+    border-left-color: var(--accent);
+    font-weight: 500;
+  }
+  .mobile-menu-toggle {
+    display: none;
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    z-index: 101;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    cursor: pointer;
+  }
+  @media (max-width: 900px) {
+    .mobile-menu-toggle { display: block; }
+  }
+  /* Main content */
+  main { min-width: 0; }
+  section {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    scroll-margin-top: 1rem;
+  }
+  h2 {
+    font-size: 1.8rem;
+    color: #fff;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  h2 .num {
+    background: var(--accent);
+    color: #000;
+    font-size: 0.9rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 50px;
+    font-weight: 700;
+  }
+  h3 {
+    font-size: 1.25rem;
+    color: var(--accent-2);
+    margin: 1.5rem 0 0.75rem;
+  }
+  h4 {
+    font-size: 1.05rem;
+    color: var(--purple);
+    margin: 1.25rem 0 0.5rem;
+  }
+  p { margin-bottom: 1rem; }
+  strong { color: #fff; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  /* Lists */
+  ul, ol { margin-left: 1.5rem; margin-bottom: 1rem; }
+  li { margin-bottom: 0.35rem; }
+  li code {
+    background: var(--bg-code);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: var(--accent-2);
+    font-family: "SF Mono", Consolas, Monaco, monospace;
+  }
+  /* Code blocks */
+  .code-block {
+    position: relative;
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin: 1rem 0;
+    overflow: hidden;
+  }
+  .code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #0d1117;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+  .code-lang {
+    font-family: "SF Mono", Consolas, monospace;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .copy-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--success); border-color: var(--success); }
+  pre {
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: "SF Mono", Consolas, Monaco, monospace;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--text);
+  }
+  code {
+    font-family: "SF Mono", Consolas, Monaco, monospace;
+  }
+  /* Callouts */
+  .callout {
+    padding: 1rem 1.25rem;
+    border-radius: 6px;
+    margin: 1rem 0;
+    border-left: 4px solid;
+  }
+  .callout-title {
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .callout-tip { background: rgba(63,185,80,0.08); border-color: var(--success); }
+  .callout-tip .callout-title { color: var(--success); }
+  .callout-warn { background: rgba(240,183,47,0.08); border-color: var(--warn); }
+  .callout-warn .callout-title { color: var(--warn); }
+  .callout-danger { background: rgba(248,81,73,0.08); border-color: var(--error); }
+  .callout-danger .callout-title { color: var(--error); }
+  .callout-info { background: rgba(88,166,255,0.08); border-color: var(--accent); }
+  .callout-info .callout-title { color: var(--accent); }
+  /* Tables */
+  .table-wrap { overflow-x: auto; margin: 1rem 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.9rem;
+  }
+  th, td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    background: var(--bg-alt);
+    color: var(--accent);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+  }
+  tr:hover td { background: rgba(88,166,255,0.04); }
+  /* Diagrams */
+  .diagram {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    font-family: "SF Mono", Consolas, Monaco, monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--accent-2);
+  }
+  /* Badges */
+  .badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .badge-blue { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .badge-green { background: rgba(63,185,80,0.15); color: var(--success); }
+  .badge-yellow { background: rgba(240,183,47,0.15); color: var(--warn); }
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--text-dim);
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+  }
+  footer strong { color: var(--accent); }
+  /* Progress indicator */
+  .progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: var(--accent);
+    width: 0%;
+    z-index: 1000;
+    transition: width 0.1s;
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<header>
+  <h1>🛡️ Elastic Stack Home Lab</h1>
+  <p>O guia definitivo — do <code>docker compose up</code> à detecção de ameaças com Sysmon, passando por TLS com CA própria, Fleet, snapshots e ILM.</p>
+</header>
+
+<div class="container">
+
+<aside id="sidebar">
+  <h3>📚 Navegação</h3>
+  <ul>
+    <li><a href="#intro">0. Introdução</a></li>
+    <li><a href="#arquitetura">1. Arquitetura</a></li>
+    <li><a href="#pre-req">2. Pré-requisitos</a></li>
+    <li><a href="#stack-base">3. Stack Base (ES + Kibana)</a></li>
+    <li><a href="#certs">4. Certificados TLS</a></li>
+    <li><a href="#tokens">5. Service Tokens</a></li>
+    <li><a href="#fleet">6. Fleet Server</a></li>
+    <li><a href="#rede">7. Rede (WSL ↔ VM)</a></li>
+    <li><a href="#agent">8. Elastic Agent Windows</a></li>
+    <li><a href="#sysmon">9. Sysmon + PowerShell</a></li>
+    <li><a href="#upgrade">10. Upgrade para 8.17.10</a></li>
+    <li><a href="#snapshots">11. Snapshots / SLM</a></li>
+    <li><a href="#ilm">12. ILM Customizado</a></li>
+    <li><a href="#troubleshoot">13. Troubleshooting</a></li>
+    <li><a href="#runbook">14. Runbook Final</a></li>
+    <li><a href="#refs">15. Referências</a></li>
+  </ul>
+</aside>
+
+<main>
+
+<!-- ============== INTRO ============== -->
+<section id="intro">
+  <h2><span class="num">0</span> Introdução</h2>
+  <p>Este guia nasceu de um projeto real de laboratório caseiro. O objetivo: construir uma stack <strong>Elastic Stack 8.17.x</strong> completa, segura e resiliente — com <em>zero</em> flags <code>--insecure</code>, <em>zero</em> <code>verification_mode: none</code>, e <em>tudo</em> validado de ponta a ponta.</p>
+  
+  <div class="callout callout-info">
+    <div class="callout-title">💡 O que você vai ter ao final</div>
+    <p>Um laboratório com Elasticsearch + Kibana + Fleet Server em Docker (WSL2), coletando logs e métricas de uma VM Windows 10 (VMware) via Elastic Agent, com Sysmon e PowerShell logados, backups automáticos diários e retenção de disco configurada.</p>
+  </div>
+  
+  <h3>Por que esse lab?</h3>
+  <ul>
+    <li><strong>Aprender SOC/SIEM</strong> na prática com uma das plataformas mais usadas no mercado</li>
+    <li><strong>Treinar detecções</strong> contra ataques simulados usando dados reais do seu ambiente</li>
+    <li><strong>Portfólio</strong>: um projeto sólido para mostrar em entrevistas de Blue Team</li>
+    <li><strong>Sandbox seguro</strong>: testar malwares e ferramentas sem risco para sua máquina principal</li>
+  </ul>
+
+  <div class="callout callout-warn">
+    <div class="callout-title">⚠️ Regra de ouro</div>
+    <p>Não pule etapas. A ordem importa. Certificados gerados depois do container subir não valem para dados já persistidos. Snapshots antes de upgrades. Service tokens antes de reiniciar o container. Cada passo tem um <em>porquê</em> — respeite.</p>
+  </div>
+</section>
+
+<!-- ============== ARQUITETURA ============== -->
+<section id="arquitetura">
+  <h2><span class="num">1</span> Arquitetura</h2>
+  <p>Topologia final validada. Cada componente tem sua responsabilidade bem definida:</p>
+  
+  <div class="diagram">Windows 11 (host físico) — 192.168.100.13
+├── WSL2 + Docker Desktop
+│   ├── Elasticsearch 8.17.10  → https://localhost:9200
+│   ├── Kibana 8.17.10         → https://localhost:5601
+│   └── Fleet Server 8.17.10   → https://172.28.16.1:8220
+│            │
+│            │ Rede elastic-net (bridge Docker)
+│            │
+└────────────┴──────────────────────────────────────
+             │
+             │ VMware Default Switch (NAT)
+             │ 172.28.16.1 (gateway da VM)
+             │
+             ▼
+VMware Workstation
+└── Windows 10 VM (172.28.23.5)
+    └── Elastic Agent 8.17.10
+        ├── Sysmon (config SwiftOnSecurity)
+        ├── PowerShell logs
+        └── System metrics</div>
+
+  <h3>Fluxo de dados</h3>
+  <ol>
+    <li><strong>VM Windows</strong> gera eventos (Sysmon, Winlog, métricas)</li>
+    <li><strong>Elastic Agent</strong> coleta e envia via HTTPS para <code>https://172.28.16.1:8220</code> (Fleet Server)</li>
+    <li><strong>Fleet Server</strong> valida o agente, recebe a policy e encaminha dados para Elasticsearch</li>
+    <li><strong>Elasticsearch</strong> indexa em data streams (<code>logs-winlog.sysmon_operational-default</code>, etc.)</li>
+    <li><strong>Kibana</strong> visualiza via data views (<code>logs-*</code>, <code>metrics-*</code>)</li>
+  </ol>
+
+  <h3>Decisões de segurança</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Decisão</th><th>Por quê</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>CA própria, sem Let's Encrypt</td><td>Home lab não tem DNS público; CA interna dá controle total sobre SANs</td></tr>
+        <tr><td>Service tokens (não senhas)</td><td>Escopo limitado, auditáveis, revogáveis sem afetar outros serviços</td></tr>
+        <tr><td>TLS em todo o tráfego</td><td>Evita credential sniffing mesmo em rede isolada</td></tr>
+        <tr><td>VM em rede NAT (não bridge)</td><td>Isolamento do malware da LAN real da casa</td></tr>
+        <tr><td>SLM automático</td><td>Backup sem intervenção humana = backup que acontece</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============== PRE-REQ ============== -->
+<section id="pre-req">
+  <h2><span class="num">2</span> Pré-requisitos</h2>
+  
+  <h3>Hardware mínimo</h3>
+  <ul>
+    <li><strong>Host:</strong> 16 GB RAM (ideal 24 GB+), SSD com 100 GB livres</li>
+    <li><strong>VM Windows:</strong> 4 GB RAM, 2 vCPUs, 40 GB disco</li>
+  </ul>
+  
+  <h3>Software</h3>
+  <ul>
+    <li>Windows 11 Pro (necessário para Hyper-V + WSL2)</li>
+    <li>WSL2 com Ubuntu 22.04 ou 24.04</li>
+    <li>Docker Desktop (integrado ao WSL2)</li>
+    <li>VMware Workstation (Pro ou Player)</li>
+    <li><code>curl</code>, <code>jq</code>, <code>openssl</code> (já vêm no Ubuntu)</li>
+  </ul>
+  
+  <h3>Instalação base</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">PowerShell (Admin)</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre># Habilita WSL e instala Ubuntu
+wsl --install -d Ubuntu-24.04
+
+# Reinicia o Windows
+shutdown /r /t 0</pre>
+  </div>
+  
+  <p>Depois do reboot, abra o <strong>Ubuntu</strong> no menu Iniciar e crie seu usuário Linux. Instale o Docker Desktop marcando <em>"Use WSL 2 instead of Hyper-V"</em> e habilite a integração com sua distro em <code>Settings → Resources → WSL Integration</code>.</p>
+  
+  <div class="callout callout-tip">
+    <div class="callout-title">✅ Dica</div>
+    <p>Crie uma pasta dedicada para o projeto: <code>mkdir -p ~/homelab/elastic && cd ~/homelab/elastic</code>. Toda a estrutura abaixo assume que você está nesse diretório.</p>
+  </div>
+</section>
+
+<!-- ============== STACK BASE ============== -->
+<section id="stack-base">
+  <h2><span class="num">3</span> Stack Base: Elasticsearch + Kibana</h2>
+  
+  <h3>3.1 — Estrutura de diretórios</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>cd ~/homelab/elastic
+mkdir -p certs/{ca,elasticsearch,kibana} esdata kibana_data backups</pre>
+  </div>
+  
+  <h3>3.2 — Arquivo <code>.env</code></h3>
+  <p>Crie o arquivo com suas senhas e chaves. <strong>Não use as mesmas senhas em produção!</strong></p>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">.env</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>STACK_VERSION=8.17.10
+CLUSTER_NAME=home-lab
+ELASTIC_PASSWORD=UmaSenhaForte123!
+KIBANA_ENCRYPTION_KEY=$(openssl rand -hex 32)
+COMPOSE_PROJECT_NAME=elastic-homelab</pre>
+  </div>
+  
+  <div class="callout callout-warn">
+    <div class="callout-title">⚠️ Atenção</div>
+    <p>O <code>KIBANA_ENCRYPTION_KEY</code> precisa ser fixo (não gere novo a cada <code>source .env</code>). Gere uma vez e deixe o valor estático no arquivo.</p>
+  </div>
+  
+  <h3>3.3 — Geração da CA e certificados</h3>
+  <p>Vamos criar uma <strong>Autoridade Certificadora própria</strong> e emitir certificados para o Elasticsearch e Kibana. Isso permite que os serviços confiem um no outro sem depender de CAs públicas.</p>
+  
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">docker-compose.yml (trecho certs)</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>services:
+  elastic-certs:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    container_name: elastic-certs
+    volumes:
+      - ./certs:/usr/share/elasticsearch/certs
+    user: "0"
+    entrypoint: &gt;
+      bash -c '
+        if [ ! -f /usr/share/elasticsearch/certs/ca/ca.p12 ]; then
+          /usr/share/elasticsearch/bin/elasticsearch-certutil ca \
+            --silent --pem --out /usr/share/elasticsearch/certs/ca/ca.zip
+          unzip -o /usr/share/elasticsearch/certs/ca/ca.zip -d /usr/share/elasticsearch/certs/ca/
+          openssl pkcs12 -in /usr/share/elasticsearch/certs/ca/ca/ca.p12 \
+            -clcerts -nokeys -passin pass: \
+            -out /usr/share/elasticsearch/certs/ca/ca.crt
+        fi
+        if [ ! -f /usr/share/elasticsearch/certs/elasticsearch/elasticsearch.p12 ]; then
+          /usr/share/elasticsearch/bin/elasticsearch-certutil cert \
+            --silent --pem --ca /usr/share/elasticsearch/certs/ca/ca.p12 \
+            --ca-pass "" --pass "" \
+            --dns elasticsearch,localhost,fleet-server,dispositivo \
+            --ip 127.0.0.1,172.28.16.1,192.168.100.13,172.29.64.1,192.168.100.1,172.29.73.217 \
+            --out /usr/share/elasticsearch/certs/elasticsearch/elasticsearch.zip
+          unzip -o /usr/share/elasticsearch/certs/elasticsearch/elasticsearch.zip \
+            -d /usr/share/elasticsearch/certs/elasticsearch/
+        fi
+      '</pre>
+  </div>
+  
+  <div class="callout callout-info">
+    <div class="callout-title">💡 Por que esses IPs nos SANs?</div>
+    <p>
+      <code>127.0.0.1</code> = acesso local<br>
+      <code>172.28.16.1</code> = gateway da VM VMware (Default Switch)<br>
+      <code>192.168.100.13</code> = IP da LAN do host Windows 11<br>
+      <code>172.29.64.1</code> = adapter WSL no host<br>
+      <code>192.168.100.1</code> = VMnet8 do VMware
+    </p>
+  </div>
+  
+  <h3>3.4 — Docker Compose completo</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">docker-compose.yml</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>services:
+  elastic-certs:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    container_name: elastic-certs
+    volumes:
+      - ./certs:/usr/share/elasticsearch/certs
+    user: "0"
+    entrypoint: *entry-certs
+    # (use o entrypoint da seção 3.3 acima)
+
+  elasticsearch:
+    depends_on:
+      - elastic-certs
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    container_name: elasticsearch
+    environment:
+      - cluster.name=${CLUSTER_NAME}
+      - discovery.type=single-node
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=true
+      - xpack.security.http.ssl.key=/usr/share/elasticsearch/config/certs/elasticsearch/elasticsearch.key
+      - xpack.security.http.ssl.certificate=/usr/share/elasticsearch/config/certs/elasticsearch/elasticsearch.crt
+      - xpack.security.http.ssl.certificate_authorities=/usr/share/elasticsearch/config/certs/ca/ca.crt
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.key=/usr/share/elasticsearch/config/certs/elasticsearch/elasticsearch.key
+      - xpack.security.transport.ssl.certificate=/usr/share/elasticsearch/config/certs/elasticsearch/elasticsearch.crt
+      - xpack.security.transport.ssl.certificate_authorities=/usr/share/elasticsearch/config/certs/ca/ca.crt
+      - path.repo=["/usr/share/elasticsearch/backups"]
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+    volumes:
+      - ./certs:/usr/share/elasticsearch/config/certs:ro
+      - esdata:/usr/share/elasticsearch/data
+      - ./backups:/usr/share/elasticsearch/backups
+    ports:
+      - "9200:9200"
+    networks: [elastic-net]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt -u elastic:${ELASTIC_PASSWORD} https://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+
+  kibana:
+    depends_on:
+      elasticsearch: { condition: service_healthy }
+    image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
+    container_name: kibana
+    environment:
+      - SERVERNAME=kibana
+      - SERVER_HOST=0.0.0.0
+      - ELASTICSEARCH_HOSTS=https://elasticsearch:9200
+      - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=/usr/share/kibana/config/certs/ca/ca.crt
+      - SERVER_SSL_ENABLED=true
+      - SERVER_SSL_CERTIFICATE=/usr/share/kibana/config/certs/elasticsearch/elasticsearch.crt
+      - SERVER_SSL_KEY=/usr/share/kibana/config/certs/elasticsearch/elasticsearch.key
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${KIBANA_ENCRYPTION_KEY}
+      - XPACK_REPORTING_ENCRYPTIONKEY=${KIBANA_ENCRYPTION_KEY}
+      - XPACK_SECURITY_ENCRYPTIONKEY=${KIBANA_ENCRYPTION_KEY}
+    volumes:
+      - ./certs:/usr/share/kibana/config/certs:ro
+      - kibana_data:/usr/share/kibana/data
+    ports:
+      - "5601:5601"
+    networks: [elastic-net]
+
+volumes:
+  esdata:
+  kibana_data:
+
+networks:
+  elastic-net:
+    driver: bridge</pre>
+  </div>
+  
+  <div class="callout callout-danger">
+    <div class="callout-title">🔥 Pegadinha comum</div>
+    <p>No Kibana, os caminhos de certificado devem começar com <code>/usr/share/kibana/...</code>, <strong>não</strong> <code>/usr/share/elasticsearch/...</code>. Usar o prefixo errado causa <code>ENOENT: no such file or directory</code> e o Kibana entra em loop de restart.</p>
+  </div>
+  
+  <h3>3.5 — Subindo a stack</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>source .env
+docker compose up -d
+docker compose logs -f</pre>
+  </div>
+  
+  <p>Aguarde ~1 min até ver <code>Kibana is now available</code> nos logs. Acesse <code>https://localhost:5601</code>, aceite o certificado auto-assinado e faça login com <code>elastic</code> / <code>${ELASTIC_PASSWORD}</code>.</p>
+</section>
+
+<!-- ============== CERTS ============== -->
+<section id="certs">
+  <h2><span class="num">4</span> Certificados TLS — Aprofundamento</h2>
+  
+  <h3>Conceitos fundamentais</h3>
+  <p>Um certificado X.509 contém três coisas essenciais:</p>
+  <ul>
+    <li><strong>CN (Common Name):</strong> identidade principal (ex: <code>elasticsearch</code>)</li>
+    <li><strong>SANs (Subject Alternative Names):</strong> lista de DNS e IPs válidos</li>
+    <li><strong>Assinatura da CA:</strong> prova que a autoridade certificadora confia nesse certificado</li>
+  </ul>
+  
+  <p>Quando um cliente (Kibana, Agent, browser) se conecta via HTTPS, ele:</p>
+  <ol>
+    <li>Recebe o certificado do servidor</li>
+    <li>Verifica se a CA que assinou está no seu <em>trust store</em></li>
+    <li>Verifica se o hostname/IP usado está nos SANs</li>
+  </ol>
+  
+  <div class="callout callout-info">
+    <div class="callout-title">💡 Por que <code>verification_mode: none</code> é perigoso</div>
+    <p>Desligar a verificação TLS é o equivalente digital a fechar os olhos num cruzamento. Em laboratório parece inofensivo, mas cria o hábito errado. No mundo real, isso é <strong>CVE waiting to happen</strong> (MITM trivial).</p>
+  </div>
+  
+  <h3>Regenerando certificados com novos SANs</h3>
+  <p>Se você precisar adicionar IPs/hosts depois (ex: novo adapter, VPN), <strong>não precisa regenerar a CA</strong> — apenas o certificado do servidor:</p>
+  
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre># Backup do cert atual
+cd ~/homelab/elastic/certs/elasticsearch
+mv elasticsearch.crt elasticsearch.crt.bak
+mv elasticsearch.key elasticsearch.key.bak
+
+# Reemite com novos SANs
+cd ~/homelab/elastic
+docker run --rm -v "$PWD/certs:/certs" \
+  docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION} \
+  bash -c '/usr/share/elasticsearch/bin/elasticsearch-certutil cert \
+    --ca /certs/ca/ca.p12 --ca-pass "" --pass "" \
+    --name homelab-server \
+    --dns elasticsearch,localhost,fleet-server,dispositivo \
+    --ip 127.0.0.1,172.28.16.1,192.168.100.13,172.29.64.1,192.168.100.1,172.29.73.217 \
+    --out /certs/elasticsearch/elasticsearch.p12'
+
+# Converte p12 → PEM
+cd certs/elasticsearch
+openssl pkcs12 -in elasticsearch.p12 -clcerts -nokeys -passin pass: -out elasticsearch.crt
+openssl pkcs12 -in elasticsearch.p12 -nocerts -nodes -passin pass: -out elasticsearch.key.pem
+openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in elasticsearch.key.pem -out elasticsearch.key
+rm -f elasticsearch.key.pem
+
+# Ajusta permissões
+cd ~/homelab/elastic
+sudo chown -R 1000:0 certs
+chmod 644 certs/ca/ca.crt certs/elasticsearch/elasticsearch.crt
+chmod 600 certs/elasticsearch/elasticsearch.key
+
+# Reinicia quem usa o cert
+docker compose restart elasticsearch kibana
+docker restart fleet-server</pre>
+  </div>
+  
+  <h3>Validando um certificado</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre># Ver SANs do certificado
+openssl x509 -in certs/elasticsearch/elasticsearch.crt -noout -text | grep -A1 "Subject Alternative Name"
+
+# Testar conexão TLS com verificação cheia
+curl --cacert certs/ca/ca.crt -u elastic:"$ELASTIC_PASSWORD" https://localhost:9200
+curl --cacert certs/ca/ca.crt -u elastic:"$ELASTIC_PASSWORD" https://172.28.16.1:9200</pre>
+  </div>
+  
+  <p>Se ambos retornarem JSON sem erro de certificado, seus SANs estão corretos.</p>
+</section>
+
+<!-- ============== TOKENS ============== -->
+<section id="tokens">
+  <h2><span class="num">5</span> Service Tokens (Kibana ↔ Elasticsearch)</h2>
+  
+  <h3>O problema das senhas</h3>
+  <p>Antigamente, o Kibana se conectava ao Elasticsearch com <code>ELASTICSEARCH_USERNAME=elastic</code> / <code>ELASTICSEARCH_PASSWORD=...</code>. Isso tem dois problemas:</p>
+  <ul>
+    <li>O usuário <code>elastic</code> é <strong>superuser</strong> — um comprometimento do Kibana = controle total do cluster</li>
+    <li>A senha aparece em variáveis de ambiente, logs e backups</li>
+  </ul>
+  
+  <h3>A solução: Service Tokens</h3>
+  <p>São credenciais com <strong>escopo limitado</strong> — só o que o Kibana precisa, nada mais. Criados via API REST ou CLI.</p>
+  
+  <h3>Criando o token do Kibana</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>docker exec elasticsearch bin/elasticsearch-service-tokens create \
+  elastic/kibana kibana-homelab
+
+# Saída: SERVICE_TOKEN elastic/kibana/kibana-homelab = AAEAAWVsYXN0aWM...
+# Copie o valor após o "="</pre>
+  </div>
+  
+  <div class="callout callout-warn">
+    <div class="callout-title">⚠️ Pegadinha da API REST</div>
+    <p>A API <code>/_security/service/elastic/kibana/credential/...</code> pode retornar <code>no handler found</code> dependendo da configuração de segurança. O <strong>CLI é mais confiável</strong> e grava o token em <code>config/service_tokens</code> dentro do container.</p>
+  </div>
+  
+  <h3>Aplicando o token no Kibana</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">.env</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>KIBANA_TOKEN=AAEAAWVsYXN0aWMva2liYW5hL2tpYmFuYS1ob21lbGFiOmZnQ3BUdVRUUkZlWjJRZkI5RDlLSEE</pre>
+  </div>
+  
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">docker-compose.yml (serviço kibana)</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>environment:
+  # Remova estas duas linhas:
+  # - ELASTICSEARCH_USERNAME=elastic
+  # - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+  # Adicione esta:
+  - ELASTICSEARCH_SERVICEACCOUNTTOKEN=${KIBANA_TOKEN}</pre>
+  </div>
+  
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>docker compose up -d
+docker compose logs -f kibana
+# Aguarde: "Kibana is now available (v8.17.10)"</pre>
+  </div>
+  
+  <h3>Backup dos tokens (crítico para upgrades!)</h3>
+  <div class="callout callout-danger">
+    <div class="callout-title">🔥 Não esqueça!</div>
+    <p>Tokens criados via CLI ficam <strong>dentro do container</strong> em <code>config/service_tokens</code>. Se o container for recriado (upgrade, <code>docker compose down</code>), os tokens somem e o Kibana/Fleet perdem acesso. Faça backup antes de qualquer upgrade!</p>
+  </div>
+  
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre># Backup
+docker cp elasticsearch:/usr/share/elasticsearch/config/service_tokens ./service_tokens.bak
+
+# Restore (depois de um upgrade)
+docker cp ./service_tokens.bak elasticsearch:/usr/share/elasticsearch/config/service_tokens
+docker exec -u 0 elasticsearch chown 1000:0 /usr/share/elasticsearch/config/service_tokens
+docker exec -u 0 elasticsearch chmod 600 /usr/share/elasticsearch/config/service_tokens
+docker restart elasticsearch</pre>
+  </div>
+</section>
+
+<!-- ============== FLEET ============== -->
+<section id="fleet">
+  <h2><span class="num">6</span> Fleet Server</h2>
+  
+  <p>O Fleet Server é o <strong>hub de comunicação</strong> entre o Kibana e os Elastic Agents. Sem ele, você não consegue gerenciar agents centralizadamente — teria que configurar cada um manualmente.</p>
+  
+  <h3>6.1 — Criando a policy no Kibana</h3>
+  <ol>
+    <li>Acesse <code>https://localhost:5601</code> → <strong>Management → Fleet</strong></li>
+    <li>Aba <strong>Agent policies</strong> → <strong>Create agent policy</strong> → nome: <code>fleet-server-policy</code></li>
+    <li>Dentro da policy → <strong>Add integration</strong> → busque <strong>Fleet Server</strong> → adicione</li>
+    <li>Copie o <strong>Policy ID</strong> da URL (algo como <code>5c97089c-293b-42f2-...</code>)</li>
+  </ol>
+  
+  <h3>6.2 — Configurando o Output do Fleet</h3>
+  <div class="callout callout-danger">
+    <div class="callout-title">🔥 Passos críticos</div>
+    <p>O output padrão vem com <code>http://localhost:9200</code>. Isso <strong>não funciona</strong> no nosso lab porque (1) usamos HTTPS e (2) o container do Fleet precisa usar o hostname Docker <code>elasticsearch</code>.</p>
+  </div>
+  
+  <ol>
+    <li><strong>Fleet → Settings → Outputs → default → Edit</strong></li>
+    <li>Em <strong>Hosts</strong>, coloque os dois (o primeiro é para containers, o segundo para agents externos):</li>
+  </ol>
+  
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">yaml</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>https://elasticsearch:9200
+https://172.28.16.1:9200</pre>
+  </div>
+  
+  <p>Em <strong>Advanced YAML</strong>, adicione:</p>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">yaml</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>ssl.certificate_authorities: ["/certs/ca/ca.crt"]</pre>
+  </div>
+  
+  <h3>6.3 — Token do Fleet Server</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>docker exec elasticsearch bin/elasticsearch-service-tokens create \
+  elastic/fleet-server fleet-homelab
+# Copie o token</pre>
+  </div>
+  
+  <h3>6.4 — Subindo o Fleet Server</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>docker run -d \
+  --name fleet-server \
+  --network elastic-net \
+  -p 8220:8220 \
+  -e FLEET_SERVER_ENABLE=true \
+  -e FLEET_SERVER_ELASTICSEARCH_HOST=https://elasticsearch:9200 \
+  -e FLEET_SERVER_ELASTICSEARCH_CA=/certs/ca/ca.crt \
+  -e FLEET_SERVER_SERVICE_TOKEN="COLE_O_TOKEN_AQUI" \
+  -e FLEET_SERVER_POLICY_ID="COLE_O_POLICY_ID_AQUI" \
+  -e FLEET_URL="https://localhost:8220" \
+  -e FLEET_CA=/certs/ca/ca.crt \
+  -e FLEET_SERVER_CERT=/certs/elasticsearch/elasticsearch.crt \
+  -e FLEET_SERVER_CERT_KEY=/certs/elasticsearch/elasticsearch.key \
+  -v "$PWD/certs:/certs:ro" \
+  --restart unless-stopped \
+  docker.elastic.co/beats/elastic-agent:${STACK_VERSION}</pre>
+  </div>
+  
+  <div class="callout callout-tip">
+    <div class="callout-title">✅ Validação</div>
+    <p>Acompanhe com <code>docker logs -f fleet-server</code>. Aguarde até ver <code>"state":"HEALTHY"</code>. Pode levar 2-3 minutos.</p>
+  </div>
+</section>
+
+<!-- ============== REDE ============== -->
+<section id="rede">
+  <h2><span class="num">7</span> Conectividade: WSL2 ↔ VM VMware</h2>
+  
+  <h3>O desafio</h3>
+  <p>Temos dois mundos virtualizados que precisam conversar:</p>
+  <ul>
+    <li>WSL2 rodando Docker (rede Docker bridge <code>elastic-net</code>)</li>
+    <li>VM VMware rodando Windows 10 (rede Default Switch NAT)</li>
+  </ul>
+  
+  <p>A VM não pode usar <code>localhost</code> para acessar o Fleet Server — <code>localhost</code> dentro da VM é a própria VM. Ela precisa acessar via <strong>IP do host Windows 11</strong> que atua como gateway.</p>
+  
+  <h3>Descobrindo os IPs</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">PowerShell (Windows 11 host)</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>ipconfig /all
+
+# Procure por:
+# - "vEthernet (Default Switch)" → IP 172.28.x.x (gateway da VM)
+# - "vEthernet (WSL)" → IP 172.29.x.x (adapter do WSL)
+# - "Ethernet" → IP da LAN (192.168.x.x)</pre>
+  </div>
+  
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash (dentro do WSL)</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>hostname -I
+# Mostra o IP interno do WSL (ex: 172.29.73.217)</pre>
+  </div>
+  
+  <h3>Testando a conectividade</h3>
+  <p>De dentro da VM Windows 10 (PowerShell):</p>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">PowerShell</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre># Testa conectividade TCP
+Test-NetConnection 172.28.16.1 -Port 8220
+Test-NetConnection 172.28.16.1 -Port 9200
+
+# Deve retornar: TcpTestSucceeded : True</pre>
+  </div>
+  
+  <div class="callout callout-warn">
+    <div class="callout-title">⚠️ Se <code>TcpTestSucceeded : False</code></div>
+    <p>Causas comuns:</p>
+    <ul>
+      <li>Firewall do Windows 11 bloqueando portas 8220 e 9200</li>
+      <li>Docker Desktop não publicando as portas para a interface correta</li>
+      <li>VM em modo Bridge em vez de NAT</li>
+    </ul>
+  </div>
+  
+  <h3>Confiando na CA na VM</h3>
+  <p>Para que o Elastic Agent (e o navegador) confiem no certificado do Fleet Server <strong>sem flags de insegurança</strong>, precisamos importar a CA no trust store do Windows:</p>
+  
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash (no WSL — exibir CA)</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>cat ~/homelab/elastic/certs/ca/ca.crt</pre>
+  </div>
+  
+  <p>Copie o conteúdo (<code>-----BEGIN CERTIFICATE-----</code> até <code>-----END CERTIFICATE-----</code>) e cole em um arquivo <code>C:\elastic\ca.crt</code> na VM.</p>
+  
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">PowerShell (Admin) na VM</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre># Importa a CA como raiz confiável
+Import-Certificate -FilePath C:\elastic\ca.crt -CertStoreLocation Cert:\LocalMachine\Root
+
+# Testa que o handshake TLS agora funciona
+Invoke-WebRequest -Uri https://172.28.16.1:9200 -UseBasicParsing | Select-Object StatusCode
+# Deve retornar StatusCode 401 (TLS OK, só falta credencial)</pre>
+  </div>
+  
+  <div class="callout callout-tip">
+    <div class="callout-title">✅ Por que 401 é bom sinal</div>
+    <p>Significa que o handshake TLS passou, o certificado foi validado e o servidor respondeu. O 401 é só "me mostre credenciais" — prova que o TLS está funcionando com verificação completa.</p>
+  </div>
+</section>
+
+<!-- ============== AGENT ============== -->
+<section id="agent">
+  <h2><span class="num">8</span> Elastic Agent no Windows</h2>
+  
+  <h3>8.1 — Configurando o Fleet Host no Kibana</h3>
+  <ol>
+    <li><strong>Fleet → Settings → Fleet server hosts → Add</strong></li>
+    <li>Nome: <code>VM Access</code></li>
+    <li>URL: <code>https://172.28.16.1:8220</code></li>
+  </ol>
+  
+  <h3>8.2 — Criando a policy do agente</h3>
+  <ol>
+    <li><strong>Fleet → Agent policies → Create</strong></li>
+    <li>Nome: <code>windows-vm</code></li>
+    <li>Adicione a integração <strong>System</strong> (para métricas básicas e logs do SO)</li>
+  </ol>
+  
+  <h3>8.3 — Instalando o agente</h3>
+  <ol>
+    <li><strong>Fleet → Agents → Add agent</strong></li>
+    <li>Selecione a policy <code>windows-vm</code> e o Fleet server <code>VM Access</code></li>
+    <li>Copie o comando gerado pelo Kibana</li>
+  </ol>
+  
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">PowerShell (Admin) na VM</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre># Exemplo do comando que o Kibana gera
+$ProgressPreference = 'SilentlyContinue'
+Invoke-WebRequest -Uri https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-agent-8.17.10-windows-x86_64.zip -OutFile elastic-agent.zip
+Expand-Archive .\elastic-agent.zip -DestinationPath .
+cd elastic-agent-8.17.10-windows-x86_64
+.\elastic-agent.exe install --url=https://172.28.16.1:8220 --enrollment-token=TOKEN_GERADO_PELO_KIBANA</pre>
+  </div>
+  
+  <h3>8.4 — Validação</h3>
+  <p>No Kibana, <strong>Fleet → Agents</strong>. Em 1-3 minutos, a VM aparecerá como <strong>Healthy</strong>. Se ficar em <strong>Degraded</strong>, verifique:</p>
+  
+  <div class="callout callout-warn">
+    <div class="callout-title">⚠️ Erro comum: <code>open /certs/ca/ca.crt: The system cannot find the path specified</code></div>
+    <p>Significa que o output default aponta para a CA num caminho Linux. Crie o mesmo caminho no Windows:</p>
+    <pre>New-Item -ItemType Directory -Path C:\certs\ca -Force
+Copy-Item C:\elastic\ca.crt C:\certs\ca\ca.crt</pre>
+  </div>
+</section>
+
+<!-- ============== SYSMON ============== -->
+<section id="sysmon">
+  <h2><span class="num">9</span> Sysmon + PowerShell Logging</h2>
+  
+  <p>Sysmon é a <strong>bíblia do Blue Team</strong> no Windows. Registra eventos que o Event Log padrão não captura: criação de processos, conexões de rede, alterações no registro, etc.</p>
+  
+  <h3>9.1 — Instalando Sysmon</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">PowerShell (Admin) na VM</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>cd C:\elastic
+
+# Baixa Sysmon + config comunitária (SwiftOnSecurity)
+Invoke-WebRequest -Uri https://download.sysinternals.com/files/Sysmon.zip -OutFile Sysmon.zip
+Expand-Archive Sysmon.zip -DestinationPath C:\elastic\sysmon -Force
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/SwiftOnSecurity/sysmon-config/master/sysmonconfig-export.xml -OutFile sysmonconfig.xml
+
+# Instala com a config
+C:\elastic\sysmon\Sysmon64.exe -accepteula -i C:\elastic\sysmonconfig.xml</pre>
+  </div>
+  
+  <h3>9.2 — Validando a instalação</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">PowerShell</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre># Verifica se o canal está ativo
+Get-WinEvent -ListLog "Microsoft-Windows-Sysmon/Operational" | Select-Object LogName, IsEnabled, RecordCount
+
+# Lê os últimos eventos
+Get-WinEvent -LogName "Microsoft-Windows-Sysmon/Operational" -MaxEvents 3 | Format-List TimeCreated, Id
+# Esperado: eventos ID 1 (ProcessCreate), 22 (DNSEvent)</pre>
+  </div>
+  
+  <div class="callout callout-info">
+    <div class="callout-title">💡 Sobre a config SwiftOnSecurity</div>
+    <p>É a config mais popular da comunidade. Balanceia <strong>visibilidade</strong> (captura muita coisa) com <strong>ruído</strong> (filtra eventos irrelevantes). Mantida pela comunidade e usada em ambientes de produção reais.</p>
+  </div>
+  
+  <h3>9.3 — Habilitando as integrações no Kibana</h3>
+  <ol>
+    <li><strong>Fleet → Agent policies → windows-vm → Edit</strong></li>
+    <li><strong>Add integration</strong> → busque <strong>Windows</strong> → Adicione</li>
+    <li>Na configuração da integração Windows, habilite os streams:
+      <ul>
+        <li><code>sysmon</code> → ON</li>
+        <li><code>powershell</code> → ON</li>
+        <li><code>powershell_operational</code> → ON</li>
+      </ul>
+    </li>
+    <li>Salve e aguarde a policy subir para o agent (rev. 4 ou superior)</li>
+  </ol>
+  
+  <div class="callout callout-warn">
+    <div class="callout-title">⚠️ Não existe "integração Sysmon" para Windows!</div>
+    <p>A integração "Sysmon" no catálogo é <strong>apenas para Linux</strong>. No Windows, o Sysmon é lido pela integração <strong>Windows</strong> via o stream <code>sysmon</code>.</p>
+  </div>
+  
+  <h3>9.4 — Validando a ingestão</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>curl -s --cacert certs/ca/ca.crt -u elastic:"$ELASTIC_PASSWORD" \
+  "https://localhost:9200/_cat/indices/logs-winlog-*,logs-sysmon-*?v&h=index,docs.count"</pre>
+  </div>
+  
+  <p>Esperado: índices <code>logs-winlog.sysmon-default</code>, <code>logs-winlog.powershell.default</code>, etc., com contagem crescente.</p>
+</section>
+
+<!-- ============== UPGRADE ============== -->
+<section id="upgrade">
+  <h2><span class="num">10</span> Upgrade de Versão</h2>
+  
+  <div class="callout callout-danger">
+    <div class="callout-title">🔥 Antes de qualquer upgrade</div>
+    <p>Faça <strong>snapshot</strong> (seção 11) e <strong>backup dos service tokens</strong> (seção 5). O Elasticsearch não pode fazer downgrade. Um upgrade mal-sucedido sem backup = dados perdidos.</p>
+  </div>
+  
+  <h3>10.1 — Backup dos tokens</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>docker cp elasticsearch:/usr/share/elasticsearch/config/service_tokens ./service_tokens.bak</pre>
+  </div>
+  
+  <h3>10.2 — Atualizar versão no <code>.env</code></h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>sed -i 's/^STACK_VERSION=.*/STACK_VERSION=8.17.10/' .env
+docker compose pull elasticsearch kibana</pre>
+  </div>
+  
+  <h3>10.3 — Recriar containers e restaurar tokens</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre># ES primeiro
+docker compose up -d elasticsearch
+docker cp ./service_tokens.bak elasticsearch:/usr/share/elasticsearch/config/service_tokens
+docker exec -u 0 elasticsearch chown 1000:0 /usr/share/elasticsearch/config/service_tokens
+docker exec -u 0 elasticsearch chmod 600 /usr/share/elasticsearch/config/service_tokens
+docker restart elasticsearch
+
+# Depois Kibana
+docker compose up -d kibana
+
+# Por último o Fleet Server (imagem nova)
+docker rm -f fleet-server
+# Recriar com a nova tag da imagem (seção 6.4)</pre>
+  </div>
+  
+  <div class="callout callout-tip">
+    <div class="callout-title">✅ Validação</div>
+    <pre>curl -s --cacert certs/ca/ca.crt -u elastic:"$ELASTIC_PASSWORD" https://localhost:9200 | grep '"number"'
+# Esperado: "number" : "8.17.10"</pre>
+  </div>
+</section>
+
+<!-- ============== SNAPSHOTS ============== -->
+<section id="snapshots">
+  <h2><span class="num">11</span> Snapshots e Backup Automático</h2>
+  
+  <p>Um snapshot é um <strong>backup completo e consistente</strong> do cluster. Permite restaurar o Elasticsearch inteiro em caso de desastre.</p>
+  
+  <h3>11.1 — Configurando o repositório</h3>
+  <p>O diretório <code>backups</code> já foi montado via <code>path.repo</code> no docker-compose. Agora registramos como repositório:</p>
+  
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>curl -s --cacert certs/ca/ca.crt -u elastic:"$ELASTIC_PASSWORD" \
+  -X PUT "https://localhost:9200/_snapshot/homelab_repo?pretty" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "type": "fs",
+    "settings": {
+      "location": "/usr/share/elasticsearch/backups",
+      "compress": true
+    }
+  }'</pre>
+  </div>
+  
+  <h3>11.2 — Primeiro snapshot manual</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>curl -s --cacert certs/ca/ca.crt -u elastic:"$ELASTIC_PASSWORD" \
+  -X PUT "https://localhost:9200/_snapshot/homelab_repo/snapshot-$(date +%Y%m%d-%H%M)?wait_for_completion=true&pretty" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "indices": "*",
+    "ignore_unavailable": true,
+    "include_global_state": true
+  }'</pre>
+  </div>
+  
+  <p>Aguarde. Esperado: <code>"state" : "SUCCESS"</code>.</p>
+  
+  <h3>11.3 — SLM: snapshots automáticos diários</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>curl -s --cacert certs/ca/ca.crt -u elastic:"$ELASTIC_PASSWORD" \
+  -X PUT "https://localhost:9200/_slm/policy/daily-backup?pretty" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "schedule": "0 30 1 * * ?",
+    "name": "&lt;daily-snap-{now/d}&gt;",
+    "repository": "homelab_repo",
+    "config": {
+      "indices": ["*"],
+      "ignore_unavailable": true,
+      "include_global_state": true
+    },
+    "retention": {
+      "expire_after": "30d",
+      "min_count": 5,
+      "max_count": 50
+    }
+  }'</pre>
+  </div>
+  
+  <div class="callout callout-info">
+    <div class="callout-title">💡 Política de retenção</div>
+    <p>Backup diário às 01:30. Mantém no mínimo 5 snapshots e no máximo 50. Deleta automaticamente o que passar de 30 dias. Ajuste conforme seu espaço em disco.</p>
+  </div>
+  
+  <h3>11.4 — Teste: executar snapshot agora</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>curl -s --cacert certs/ca/ca.crt -u elastic:"$ELASTIC_PASSWORD" \
+  -X POST "https://localhost:9200/_slm/policy/daily-backup/_execute?pretty"
+
+# Listar todos os snapshots
+curl -s --cacert certs/ca/ca.crt -u elastic:"$ELASTIC_PASSWORD" \
+  "https://localhost:9200/_snapshot/homelab_repo/_all?pretty" | grep -E '"(snapshot|state)"'</pre>
+  </div>
+  
+  <h3>11.5 — Restaurando um snapshot (emergência)</h3>
+  <div class="callout callout-danger">
+    <div class="callout-title">🔥 Cuidado</div>
+    <p>Restauro sobrescreve dados. Em produção, teste em cluster separado primeiro.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre># Fechar índices existentes (evita conflito)
+curl -s --cacert certs/ca/ca.crt -u elastic:"$ELASTIC_PASSWORD" \
+  -X POST "https://localhost:9200/*-*/_close?pretty"
+
+# Restaurar
+curl -s --cacert certs/ca/ca.crt -u elastic:"$ELASTIC_PASSWORD" \
+  -X POST "https://localhost:9200/_snapshot/homelab_repo/NOME_DO_SNAPSHOT/_restore?pretty" \
+  -H 'Content-Type: application/json' \
+  -d '{"indices": "*", "include_global_state": true}'</pre>
+  </div>
+</section>
+
+<!-- ============== ILM ============== -->
+<section id="ilm">
+  <h2><span class="num">12</span> ILM Customizado (Higiene de Disco)</h2>
+  
+  <p>ILM (Index Lifecycle Management) controla <strong>quanto tempo dados ficam</strong> e <strong>quando rollover</strong> acontece. Sem ILM agressivo, logs do Windows e Sysmon vão comer seu disco em semanas.</p>
+  
+  <h3>12.1 — Políticas customizadas</h3>
+  
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Policy</th><th>Retenção</th><th>Rollover</th><th>Aplicado em</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>homelab-logs-short</code></td><td>7 dias</td><td>7d ou 10 GB</td><td>Sysmon, PowerShell, Windows logs</td></tr>
+        <tr><td><code>homelab-metrics-short</code></td><td>7 dias</td><td>7d ou 5 GB</td><td>Métricas system e agent</td></tr>
+        <tr><td><code>homelab-logs-agent</code></td><td>3 dias</td><td>3d ou 5 GB</td><td>Logs internos do Elastic Agent</td></tr>
+      </tbody>
+    </table>
+  </div>
+  
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash — Criar a policy homelab-logs-short</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>curl -s --cacert certs/ca/ca.crt -u elastic:"$ELASTIC_PASSWORD" \
+  -X PUT "https://localhost:9200/_ilm/policy/homelab-logs-short?pretty" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "policy": {
+      "phases": {
+        "hot": {
+          "min_age": "0ms",
+          "actions": {
+            "rollover": { "max_age": "7d", "max_size": "10gb" }
+          }
+        },
+        "delete": {
+          "min_age": "7d",
+          "actions": { "delete": {} }
+        }
+      }
+    }
+  }'</pre>
+  </div>
+  
+  <p>Repita para <code>homelab-metrics-short</code> e <code>homelab-logs-agent</code> ajustando tempos/tamanhos.</p>
+  
+  <h3>12.2 — Index Templates (aplicar as policies)</h3>
+  <div class="callout callout-warn">
+    <div class="callout-title">⚠️ Pegadinha: <code>data_stream: {}</code></div>
+    <p>Templates para data streams <strong>precisam</strong> da chave <code>"data_stream": {}</code>. Sem ela, o Elasticsearch rejeita o template com erro de "no data stream configuration".</p>
+  </div>
+  
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>curl -s --cacert certs/ca/ca.crt -u elastic:"$ELASTIC_PASSWORD" \
+  -X PUT "https://localhost:9200/_index_template/homelab-logs-windows?pretty" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "index_patterns": ["logs-windows.*-default"],
+    "priority": 500,
+    "data_stream": {},
+    "template": {
+      "settings": {
+        "index.lifecycle.name": "homelab-logs-short"
+      }
+    }
+  }'</pre>
+  </div>
+  
+  <h3>12.3 — Rollover forçado</h3>
+  <p>Índices criados antes do template continuarão com a policy antiga. Force o rollover para aplicar a nova:</p>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>curl -s --cacert certs/ca/ca.crt -u elastic:"$ELASTIC_PASSWORD" \
+  -X POST "https://localhost:9200/logs-windows.sysmon_operational-default/_rollover?pretty"
+
+curl -s --cacert certs/ca/ca.crt -u elastic:"$ELASTIC_PASSWORD" \
+  -X POST "https://localhost:9200/metrics-system.process-default/_rollover?pretty"</pre>
+  </div>
+  
+  <h3>12.4 — Validação</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre># Ver as policies aplicadas nos índices novos
+curl -s --cacert certs/ca/ca.crt -u elastic:"$ELASTIC_PASSWORD" \
+  "https://localhost:9200/.ds-*000002/_settings?pretty" | grep -A2 '"lifecycle"'</pre>
+  </div>
+</section>
+
+<!-- ============== TROUBLESHOOT ============== -->
+<section id="troubleshoot">
+  <h2><span class="num">13</span> Troubleshooting</h2>
+  
+  <h3>🔸 Kibana em loop: <code>ENOENT: no such file or directory, open '/usr/share/elasticsearch/...'</code></h3>
+  <p><strong>Causa:</strong> Caminhos de certificado no compose apontam para o prefixo errado.</p>
+  <p><strong>Fix:</strong> No serviço <code>kibana</code>, todos os caminhos devem começar com <code>/usr/share/kibana/</code>, não <code>/usr/share/elasticsearch/</code>.</p>
+  
+  <h3>🔸 <code>Fleet Server state: DEGRADED</code> com <code>missing config fleet.agent.id</code></h3>
+  <p><strong>Causa:</strong> O Elastic Agent precisa confiar no certificado do próprio Fleet Server para completar o bootstrap.</p>
+  <p><strong>Fix:</strong> Adicione <code>-e FLEET_CA=/certs/ca/ca.crt</code> no <code>docker run</code> do Fleet Server.</p>
+  
+  <h3>🔸 <code>dial tcp [::1]:9200: connection refused</code></h3>
+  <p><strong>Causa:</strong> O agente está tentando conectar ao localhost dentro do próprio container (que não tem ES).</p>
+  <p><strong>Fix:</strong> Verifique <code>FLEET_SERVER_ELASTICSEARCH_HOST</code> — deve ser <code>https://elasticsearch:9200</code>, não <code>localhost</code>.</p>
+  
+  <h3>🔸 Agent Windows <strong>Degraded</strong>: <code>open /certs/ca/ca.crt: file not found</code></h3>
+  <p><strong>Causa:</strong> O output default usa caminho Linux <code>/certs/ca/ca.crt</code> que não existe no Windows.</p>
+  <p><strong>Fix:</strong> Na VM: <code>New-Item C:\certs\ca -Force; Copy-Item C:\elastic\ca.crt C:\certs\ca\</code>.</p>
+  
+  <h3>🔸 <code>no handler found for uri [/_security/service/...]</code></h3>
+  <p><strong>Causa:</strong> Security desabilitado no Elasticsearch ou API incompatível.</p>
+  <p><strong>Fix:</strong> Use a CLI <code>bin/elasticsearch-service-tokens</code> em vez da API REST.</p>
+  
+  <h3>🔸 <code>composable template would cause data streams to no longer match</code></h3>
+  <p><strong>Causa:</strong> Faltou <code>"data_stream": {}</code> no index template.</p>
+  <p><strong>Fix:</strong> Adicione a chave <code>data_stream</code> vazia no template.</p>
+  
+  <h3>🔸 Service tokens sumiram após upgrade</h3>
+  <p><strong>Causa:</strong> Tokens vivem dentro do container em <code>config/service_tokens</code>, não no volume.</p>
+  <p><strong>Fix:</strong> Sempre faça <code>docker cp elasticsearch:/usr/share/elasticsearch/config/service_tokens ./service_tokens.bak</code> antes de upgrades. Restaure com <code>docker cp</code> + <code>chown</code> + <code>chmod 600</code>.</p>
+</section>
+
+<!-- ============== RUNBOOK ============== -->
+<section id="runbook">
+  <h2><span class="num">14</span> Runbook Final</h2>
+  
+  <h3>Comandos do dia-a-dia</h3>
+  
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash — Iniciar/parar</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre># Iniciar stack
+cd ~/homelab/elastic
+docker compose up -d
+docker start fleet-server
+
+# Parar stack
+docker compose down
+docker stop fleet-server
+
+# Ver status
+docker compose ps
+docker ps | grep fleet-server</pre>
+  </div>
+  
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash — Logs</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>docker compose logs -f elasticsearch
+docker compose logs -f kibana
+docker logs -f fleet-server</pre>
+  </div>
+  
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">bash — Health checks</span>
+      <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    </div>
+    <pre>source .env
+curl -s --cacert certs/ca/ca.crt -u elastic:"$ELASTIC_PASSWORD" \
+  "https://localhost:9200/_cluster/health?pretty"
+
+# Uso de disco
+curl -s --cacert certs/ca/ca.crt -u elastic:"$ELASTIC_PASSWORD" \
+  "https://localhost:9200/_cluster/stats?pretty" | grep -A3 '"store"'</pre>
+  </div>
+  
+  <h3>Checklist mensal</h3>
+  <ul>
+    <li>☐ Validar snapshots recentes: <code>_snapshot/homelab_repo/_all</code></li>
+    <li>☐ Checar SLM: <code>_slm/status</code> deve estar <code>RUNNING</code></li>
+    <li>☐ Testar restore em cluster temporário (trimestral)</li>
+    <li>☐ Revisar ILM: algum índice sem policy?</li>
+    <li>☐ Atualizar Sysmon config (SwiftOnSecurity atualiza com frequência)</li>
+  </ul>
+  
+  <h3>Próximos passos naturais</h3>
+  <ul>
+    <li><strong>Elastic Security:</strong> habilitar detection rules (MITRE ATT&CK)</li>
+    <li><strong>Sigma rules:</strong> converter regras open-source para Kibana</li>
+    <li><strong>Dashboards:</strong> criar views customizadas (Sysmon overview, logon tracking)</li>
+    <li><strong>Atomic Red Team:</strong> simular ataques e validar detecções</li>
+    <li><strong>TheHive / Cortex:</strong> integrar para case management</li>
+  </ul>
+</section>
+
+<!-- ============== REFS ============== -->
+<section id="refs">
+  <h2><span class="num">15</span> Referências</h2>
+  
+  <h3>Documentação oficial Elastic</h3>
+  <ul>
+    <li><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html" target="_blank">Elasticsearch Docker</a></li>
+    <li><a href="https://www.elastic.co/guide/en/fleet/current/elastic-agent-container.html" target="_blank">Elastic Agent container</a></li>
+    <li><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/snapshots-take-snapshot.html" target="_blank">Snapshots</a></li>
+    <li><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/index-lifecycle-management.html" target="_blank">ILM</a></li>
+    <li><a href="https://www.elastic.co/guide/en/fleet/current/fleet-server.html" target="_blank">Fleet Server</a></li>
+  </ul>
+  
+  <h3>Comunidade</h3>
+  <ul>
+    <li><a href="https://github.com/SwiftOnSecurity/sysmon-config" target="_blank">Sysmon config (SwiftOnSecurity)</a></li>
+    <li><a href="https://github.com/peasead/elastic-container" target="_blank">elastic-container (lab reference)</a></li>
+    <li><a href="https://github.com/deviantony/docker-elk" target="_blank">docker-elk (compose reference)</a></li>
+    <li><a href="https://atomicredteam.io/" target="_blank">Atomic Red Team (simulações)</a></li>
+    <li><a href="https://github.com/SigmaHQ/sigma" target="_blank">Sigma rules</a></li>
+  </ul>
+  
+  <h3>Ferramentas relacionadas</h3>
+  <ul>
+    <li><strong>Wazuh:</strong> alternativa open-source a Elastic Security — veja <a href="#" onclick="alert('Guia Wazuh não incluso neste documento')">guia separado</a></li>
+    <li><strong>Velociraptor:</strong> DFIR avançado para hunting</li>
+    <li><strong>LimaCharlie:</strong> EDR gratuito para home labs</li>
+  </ul>
+</section>
+
+</main>
+</div>
+
+<footer>
+  <p>🛡️ <strong>Elastic Stack Home Lab — Runbook Definitivo</strong></p>
+  <p>Construído com café, curiosidade e muita leitura de logs.</p>
+  <p style="margin-top:0.5rem; font-size:0.85rem;">Versão 1.0 • Elastic Stack 8.17.10 • Atualizado em 2026</p>
+</footer>
+
+<button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰ Menu</button>
+
+<script>
+// Copy to clipboard
+function copyCode(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    const original = btn.textContent;
+    btn.textContent = '✓ Copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.classList.remove('copied');
+    }, 1500);
+  });
+}
+
+// Progress bar
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progressBar').style.width = scrolled + '%';
+});
+
+// Active sidebar link
+const sections = document.querySelectorAll('section[id]');
+const links = document.querySelectorAll('aside a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(sec => {
+    const top = sec.offsetTop - 100;
+    if (window.scrollY >= top) current = sec.id;
+  });
+  links.forEach(l => {
+    l.classList.remove('active');
+    if (l.getAttribute('href') === '#' + current) l.classList.add('active');
+  });
+});
+
+// Mobile menu
+function toggleMobileMenu() {
+  document.getElementById('sidebar').classList.toggle('mobile-open');
+}
+</script>
+</body>
+</html>
